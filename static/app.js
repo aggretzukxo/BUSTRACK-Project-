@@ -8,6 +8,9 @@ let stops = [], buses = {}, busMarkers = {};
 let socket = null, wsRetry = null, pollTimer = null;
 let lastQuery = null, currentPlan = null, selectedBusId = null;
 let authMode = "login";
+const STOP_MIN_ZOOM = 13;          // below this zoom, no stop dots are drawn
+const stopMarkerPool = new Map();  // stop id -> marker, created once and reused
+let stopIdleListener = null, stopIcon = null;
 
 /* ---------------------------------------------------------------- API */
 async function api(path, { method = "GET", body } = {}) {
@@ -156,6 +159,7 @@ async function signOut(callApi = true) {
   clearTrip();
   Object.values(busMarkers).forEach(m => m.setMap(null));
   busMarkers = {}; buses = {};
+  stopMarkerPool.forEach(m => m.setMap(null));
   showAuth();
 }
 $("#logout").addEventListener("click", () => signOut(true));
@@ -186,6 +190,37 @@ function initMap() {
     // zoom/pan than the default raster tiles. Falls back to the old renderer if unset.
     mapId: window.__BUSTRACK_MAP_ID || undefined,
   });
+}
+
+/* Stop dots: only the stops inside the current view, and only when zoomed in.
+   Runs on the map's 'idle' event (after a pan/zoom settles), so gestures stay smooth. */
+function refreshVisibleStops() {
+  if (!map) return;
+  const bounds = map.getBounds();
+  const zoomedIn = map.getZoom() >= STOP_MIN_ZOOM;
+  stopIcon = stopIcon || {
+    path: google.maps.SymbolPath.CIRCLE, scale: 3, fillColor: "#64748b",
+    fillOpacity: 0.85, strokeColor: "#fff", strokeWeight: 1,
+  };
+  for (const s of stops) {
+    let m = stopMarkerPool.get(s.id);
+    const visible = zoomedIn && bounds && bounds.contains({ lat: s.lat, lng: s.lng });
+    if (visible) {
+      if (!m) {
+        m = new google.maps.Marker({ position: { lat: s.lat, lng: s.lng }, title: s.name, icon: stopIcon });
+        stopMarkerPool.set(s.id, m);
+      }
+      if (!m.getMap()) m.setMap(map);
+    } else if (m && m.getMap()) {
+      m.setMap(null);
+    }
+  }
+}
+
+function initStopLayer() {
+  if (!map) return;
+  if (!stopIdleListener) stopIdleListener = map.addListener("idle", refreshVisibleStops);
+  refreshVisibleStops();
 }
 
 function busIcon(bus) {
@@ -459,7 +494,9 @@ async function startApp(user) {
   if (!stops.length) {
     stops = await api("/api/stops");
     fillStopSelects();
+    if (!stops.length) showMessage("The server has no stop locations loaded yet.", "error");
   }
+  initStopLayer();
   connectSocket();
 }
 
