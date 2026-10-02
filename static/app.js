@@ -485,17 +485,19 @@ async function startApp(user) {
   $("#auth-view").classList.add("hidden");
   $("#app-view").classList.remove("hidden");
   $("#user-name").textContent = user.name;
+  const problems = [];
   try {
     if (!gmapsLoaded) { await loadGoogleMaps(); gmapsLoaded = true; }
     initMap();
   } catch (err) {
-    showMessage(err.message, "error");
+    problems.push(err.message);
   }
   if (!stops.length) {
     stops = await api("/api/stops");
     fillStopSelects();
-    if (!stops.length) showMessage("The server has no stop locations loaded yet.", "error");
+    if (!stops.length) problems.push("The server has no stop locations loaded yet.");
   }
+  if (problems.length) showMessage(problems.join(" "), "error");
   initStopLayer();
   connectSocket();
 }
