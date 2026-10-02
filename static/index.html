@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BusTrack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 1. Login / sign up -->
+  <section id="auth-view" class="auth hidden">
+    <div class="auth-card">
+      <div class="brand">Bus<span>Track</span></div>
+      <p class="tagline">Real-time public bus tracking · Kolkata</p>
+      <div id="auth-info" class="msg info hidden"></div>
+      <div id="panel-login">
+      <div class="tabs">
+        <button type="button" class="tab active" data-mode="login">Log in</button>
+        <button type="button" class="tab" data-mode="signup">Sign up</button>
+      </div>
+      <form id="auth-form" novalidate>
+        <div id="name-row" class="hidden">
+          <label for="name">Your name</label>
+          <input id="name" autocomplete="name" maxlength="60">
+        </div>
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <div id="pw-hint" class="hint hidden">At least 8 characters.</div>
+        <div id="forgot-row" class="forgot-row"><button id="forgot-link" class="link-btn" type="button">Forgot password?</button></div>
+        <div id="auth-error" class="msg error hidden"></div>
+        <button id="auth-submit" class="btn" type="submit">Log in</button>
+      </form>
+      </div>
+
+      <!-- Forgot password -->
+      <div id="panel-forgot" class="hidden">
+        <h2 class="panel-title">Reset your password</h2>
+        <p class="hint">Enter your account email and we'll send you a link to choose a new password.</p>
+        <form id="forgot-form" novalidate>
+          <label for="forgot-email">Email</label>
+          <input id="forgot-email" type="email" autocomplete="email" required>
+          <div id="forgot-error" class="msg error hidden"></div>
+          <button id="forgot-submit" class="btn" type="submit">Send reset link</button>
+        </form>
+        <div class="forgot-row"><button class="link-btn back-to-login" type="button">← Back to log in</button></div>
+      </div>
+
+      <!-- Choose a new password (opened from the emailed link) -->
+      <div id="panel-reset" class="hidden">
+        <h2 class="panel-title">Choose a new password</h2>
+        <form id="reset-form" novalidate>
+          <label for="new-password">New password</label>
+          <input id="new-password" type="password" autocomplete="new-password" required>
+          <div class="hint">At least 8 characters.</div>
+          <label for="new-password2">Confirm new password</label>
+          <input id="new-password2" type="password" autocomplete="new-password" required>
+          <div id="reset-error" class="msg error hidden"></div>
+          <button id="reset-submit" class="btn" type="submit">Update password</button>
+        </form>
+        <div class="forgot-row"><button class="link-btn back-to-login" type="button">← Back to log in</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Trip planner + live map -->
+  <div id="app-view" class="app hidden">
+    <header class="topbar">
+      <div class="brand small">Bus<span>Track</span></div>
+      <div class="topbar-right">
+        <span id="live" class="live off" title="Live connection">● Offline</span>
+        <span id="user-name" class="user"></span>
+        <button id="logout" class="link-btn" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <h2>Where are you going?</h2>
+        <form id="trip-form">
+          <label for="from">Starting point</label>
+          <div class="row">
+            <select id="from"></select>
+            <button id="locate" class="icon-btn" type="button" title="Use my nearest stop">📍</button>
+          </div>
+          <div class="swap-row"><button id="swap" class="icon-btn" type="button" title="Swap">⇅</button></div>
+          <label for="to">Destination</label>
+          <select id="to"></select>
+          <button class="btn" type="submit">Find buses</button>
+        </form>
+        <div id="message" class="msg hidden"></div>
+        <div id="results"></div>
+      </aside>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <!-- The Maps key is served by the backend at /config.js (from the environment), not stored here. -->
+  <script src="/config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

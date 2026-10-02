@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: bustrack
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      # Stops come from geocode_seed.json, so the server never calls the Geocoding API here.
+      - key: GEOCODE_ON_STARTUP
+        value: "0"
+      # Browser Maps key (restricted to your site's URL in Google Cloud Console).
+      - key: GOOGLE_MAPS_BROWSER_KEY
+        sync: false
+      # Optional: a Map ID for Google's smoother vector map renderer (see .env.example).
+      - key: GOOGLE_MAPS_MAP_ID
+        sync: false
+      # Optional demo login, recreated every time the free server wakes up.
+      - key: DEMO_EMAIL
+        sync: false
+      - key: DEMO_PASSWORD
+        sync: false
+      # Your live address, e.g. https://bustrack.onrender.com (used in password-reset links).
+      - key: APP_BASE_URL
+        sync: false
